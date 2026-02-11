@@ -36,7 +36,7 @@ find /proc/irq/ -maxdepth 1 -mindepth 1 -type d | while read -r i; do
 done > "$1"/interrupt-affinity.txt
 
 if command -v cgsnapshot >/dev/null 2>/dev/null; then
-    cgsnapshot > "$1"/cgroups.txt || true
+    cgsnapshot 2>&1 > "$1"/cgroups.txt | awk '/WARNING/ {print} /ERROR/ {$1 = ""; print "WARNING:"$0}'
 else
     echo "cgsnapshot not available, skipping!" > /dev/stderr
 fi
@@ -44,9 +44,10 @@ fi
 if command -v ethtool >/dev/null 2>/dev/null; then
     for i in /sys/class/net/*; do
 	nic="${i#/sys/class/net/}"
-	ethtool -g "$nic" || true
-	ethtool -l "$nic" || true
-	ethtool -n "$nic" || true
+	ethtool -g "$nic" 2> /dev/null || echo "WARNING: Cannot read rx/tx ring for NIC ${nic}" > /dev/stderr
+	ethtool -l "$nic" 2> /dev/null || echo "WARNING: Cannot read number of channels for NIC ${nic}" > /dev/stderr
+	ethtool -n "$nic" 2> /dev/null || echo "WARNING: Cannot read network flow options for NIC ${nic}" > /dev/stderr
+
     done > "$1"/nics.txt
 else
     echo "ethtool not available, skipping!" > /dev/stderr
