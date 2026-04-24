@@ -33,6 +33,7 @@
   ],
   "benchmark_config": {
     "duration": 60,
+    "repeat": 6,
     "monitors": {
       "mpstat": [
         "-n",
@@ -55,8 +56,8 @@
           1
         ],
         {
-          "min": 5,
-          "step": 5,
+          "min": 2,
+          "step": 4,
           "max": 30
         }
       ]
