@@ -28,6 +28,31 @@ def get_cmdline(argv):
 
     return x_adjust, y_adjust, pretty, map_tid2name
 
+def get_cmdline_timeplot(argv):
+    if len(sys.argv) == 5:
+        _, x_adjust, min_limit_iter, max_limit_iter, pretty_str = sys.argv
+        select_time = False
+        allowed_threads = False
+    elif len(sys.argv) == 6:
+        _, x_adjust, min_limit_iter, max_limit_iter, pretty_str, allowed_threads = sys.argv
+        select_time = False
+        allowed_threads = ast.literal_eval(allowed_threads)
+    elif len(sys.argv) == 7:
+        _, x_adjust, min_limit_iter, max_limit_iter, pretty_str, allowed_threads, select_time = sys.argv
+        allowed_threads = ast.literal_eval(allowed_threads)
+    else:
+        print("Usage: ./12_timeplot.py <x-axis-adj> <limit maximum iteration> <map pretty> [select time period]")
+        exit(1)
+
+    map_tid2name = None
+    x_adjust = float(x_adjust)
+    min_limit_iter = int(min_limit_iter)
+    max_limit_iter = int(max_limit_iter)
+    pretty = ast.literal_eval(pretty_str)
+
+    return x_adjust, y_adjust, pretty, map_tid2name
+    return x_adjust, y_adjust, pretty, map_tid2name, select_time, allowed_threads, min_limit_iter, max_limit_iter
+
 def set_config(width=8, height=6, font_scale=1.15):
     sns.set_theme(
         context="talk",

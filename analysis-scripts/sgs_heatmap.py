@@ -71,6 +71,8 @@ for one_file in filename:
     time_per_loop_ms = 15 * 1000 // df["iteration"].max()
 
     values_to_select = [x for x in df.columns if 'total' in x]
+    values_to_select.remove('total_any_or_0')
+    values_to_select.remove('total_any_or_0_latency')
 
     print(values_to_select)
 
@@ -94,7 +96,6 @@ for one_file in filename:
     for option in ["mean"]:
         print("\n\n\n")
         for select_value in values_to_select:
-            print("\n")
 
             get_other_name = {}
             for tid, simple in tid2simple_map.items():
@@ -108,7 +109,8 @@ for one_file in filename:
             tmp["first"] = tmp["first"].apply(lambda x: f"{pretty[simple2name[x]]} {get_other_name[x]}")
             tmp["second"] = tmp["second"].apply(lambda x: f"{pretty[simple2name[x]]} {get_other_name[x]}")
 
-            print(tmp.sort_values(by=select_value, ascending=False).head(7))
+            #print("\n")
+            #print(tmp.sort_values(by=select_value, ascending=False).head(7))
 
             threads = tmp['first'].unique()
             threads.sort()
