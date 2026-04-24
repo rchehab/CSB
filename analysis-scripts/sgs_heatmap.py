@@ -14,9 +14,8 @@ import seaborn as sns
 from utils import *
 
 filename_dir_s1 = "results-mysql-lseek_fcntl_17_0"
-filename_dir_s2 = "results-mysql-lseek_fcntl_17_0-v2"
 
-the_filename = filename_dir_s2
+the_filename = filename_dir_s1
 
 x_adjust, y_adjust, pretty, map_tid2name = get_cmdline(sys.argv)
 
