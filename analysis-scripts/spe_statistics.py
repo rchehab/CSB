@@ -26,6 +26,9 @@ filename.sort()
 for one_file in filename:
     print(one_file)
 
+    name_file = "-".join(one_file.split("/")[-2].split("-")[1:])
+    name_file = name_file.replace(':', '-')
+
     df = records_from_csv_file(one_file)
     df.reset_index(level=0, inplace=True)
 
@@ -62,6 +65,7 @@ for one_file in filename:
         'nb_pcs',
         'latencies',
     ])
+    df_simple = df.drop(columns=lt_list + cnt_list)
 
     calculate_bucket(df)
 
@@ -77,45 +81,23 @@ for one_file in filename:
 
     op_types = pd.concat([isolated, shared])
 
-    df = df.drop(columns=lt_list + cnt_list)
-
-    print(df.sort_values(by='nb_threads', ascending=False))
     print(op_types.sort_values(by=['type', 'memory']))
+
+    # Print latency histograms
+    get_latency_histogram([df], filename=f'out/{name_file}-cumul-latency.pdf', name='general')
+    df_buc = get_latency_histogram([df], filename=f'out/{name_file}-nb-threads-latency.pdf', name='per_region', x_axis = 'nb_threads')
+    get_latency_histogram([df_share], filename=f'out/{name_file}-shared-latency.pdf', name='shared_only')
+    get_latency_histogram([df_isol], filename=f'out/{name_file}-isolated-latency.pdf', name='isolated_only')
     xxxxxxxxxxx
 
-# In[ ]:
-
-
-isol1 = get_diff(isolated)
-shar1 = get_diff(shared)
-
-op_types1 = pd.concat([isol1, shar1])
-
-
-# # Show Cumulative Graphs
 
 # In[ ]:
 
-
-get_latency_histogram([df], name='general')
 
 
 # In[ ]:
 
 
-df_buc = get_latency_histogram([df, df_cache, df_page], name='per_region', x_axis = 'nb_threads')
-
-
-# In[ ]:
-
-
-get_latency_histogram([df_share], name='shared_only')
-
-
-# In[ ]:
-
-
-get_latency_histogram([df_isol], name='isolated_only')
 
 
 # # Check types of operations

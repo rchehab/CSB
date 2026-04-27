@@ -8,7 +8,10 @@ from typing import Optional
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
 import seaborn as sns
+
+from utils import set_config
 
 def no_thread(list_pcs):
     if type(list_pcs) == float:
@@ -68,25 +71,21 @@ def calculate_avg_latency(df):
             
 def calculate_bucket(df):
     calculate_avg_latency(df)
-    df['bucket'] = df['avg_latency'].apply(lambda x: round(x / 10) * 10);
+    df['latency bucket'] = df['avg_latency'].apply(lambda x: round(x / 10) * 10);
 
 def calc_cumul_latency(df):
-    df['cumul_total_latency'] = 0
-    df['cumul_total_count'] = 0
+    df['cumul_total_latency'] = 0.0
+    df['cumul_total_count'] = 0.0
 
-    for bench in df['benchmark'].unique():
-        for scen in df['scenario'].unique():
-            filt = (df['benchmark'] == bench) & (df['scenario'] == scen)
+    cumul_total_latency = 0.0
+    cumul_total_count = 0.0
+
+    for index, row in df.iterrows():
+        cumul_total_latency = cumul_total_latency + row['total_latency']
+        cumul_total_count = cumul_total_count + row['total_count']
         
-            cumul_total_latency = 0
-            cumul_total_count = 0
-
-            for index, row in df[filt].iterrows():
-                cumul_total_latency = cumul_total_latency + row['total_latency']
-                cumul_total_count = cumul_total_count + row['total_count']
-                
-                df.loc[index, 'cumul_total_latency'] = cumul_total_latency
-                df.loc[index, 'cumul_total_count'] = cumul_total_count
+        df.loc[index, 'cumul_total_latency'] = cumul_total_latency
+        df.loc[index, 'cumul_total_count'] = cumul_total_count
 
     df['cumul_avg_latency'] = df['cumul_total_latency'] / df['cumul_total_count']
 
@@ -126,16 +125,13 @@ def get_one_per_type_df(df):
 
 
 
-def get_latency_histogram(df_array, name, x_axis = 'bucket'):
+def get_latency_histogram(df_array, name, filename, x_axis = 'latency bucket'):
     set_config(16, 7, font_scale=1.15)
-
-    scenarios = df_array[0]['scenario'].unique()
-    bench = df_array[0]['benchmark'].unique()[0]
     
     plot, axes = plt.subplots(1, len(df_array))
 
     for j, df in enumerate(df_array):
-        df_buc = df.groupby([x_axis, 'benchmark', 'scenario'])[['total_latency', 'total_count']].sum().reset_index();
+        df_buc = df.groupby(x_axis)[['total_latency', 'total_count']].sum().reset_index();
         calc_cumul_latency(df_buc)
 
         def get_axes(axes, j):
@@ -144,7 +140,6 @@ def get_latency_histogram(df_array, name, x_axis = 'bucket'):
             else:
                 return axes[j]
 
-
         splot = sns.lineplot(
             data=df_buc,
 
@@ -152,10 +147,6 @@ def get_latency_histogram(df_array, name, x_axis = 'bucket'):
             y='cumul_total_latency',
 
             legend='full' if (j == 0) else None,
-            style='scenario',
-            markers=True,
-            hue='scenario',
-            hue_order=hue_order,
 
             errorbar=('ci', 95),
             linewidth = 2,
@@ -191,13 +182,14 @@ def get_latency_histogram(df_array, name, x_axis = 'bucket'):
             '99\%',
         ])
 
-        splot.set_title(f"Benchmark {bench}")
-        splot.set_xlabel(f"Latency '{x_axis}'")
+        splot.set_title(f"Cumulative latency over time")
+        splot.set_xlabel(f"Sorted by '{x_axis}'")
         splot.set_ylabel("Cumulative Latency")
         get_axes(axes, j).ticklabel_format(style='plain')
     
     l_handles, l_labels = get_axes(axes, 0).get_legend_handles_labels()
-    get_axes(axes, 0).get_legend().remove()
+    if get_axes(axes, 0).get_legend():
+        get_axes(axes, 0).get_legend().remove()
 
     plot.legend(
         l_handles,
@@ -211,7 +203,7 @@ def get_latency_histogram(df_array, name, x_axis = 'bucket'):
 
     plot.tight_layout(h_pad=1, w_pad=3)
     
-    plt.savefig(f'{bench}_{name}.pdf', bbox_inches='tight')
+    plt.savefig(filename, bbox_inches='tight')
 
 def plot_bar(df, y_axes, name, print_all=False):
     set_config(16, 9, font_scale=0.8)
