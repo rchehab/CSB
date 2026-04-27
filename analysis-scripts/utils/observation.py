@@ -90,24 +90,21 @@ def calc_cumul_latency(df):
 
     df['cumul_avg_latency'] = df['cumul_total_latency'] / df['cumul_total_count']
 
-def get_one_per_type_df(df, max_latency, max_count):
+def get_one_per_type_df(df):
 
-    lt_list = [x for x in df.columns if 'latency' in x and x != 'total_latency']
+    lt_list = [x for x in df.columns if 'latency' in x and '_' not in x]
     cnt_list = [x.split(' latency')[0] for x in lt_list]
+    lt_list.append('total_latency')
+    cnt_list.append('total_count')
 
     per_type_latency = df[lt_list].sum().reset_index()
-    print("")
-    print(per_type_latency)
-    per_type_latency = per_type_latency.melt(
-        var_name='type', value_name='latency'
-    )
-    print("")
-    print(per_type_latency)
+    per_type_latency = per_type_latency.rename(columns={'index': 'type', 0: 'latency'})
 
     per_type_count = df[cnt_list].sum().reset_index()
-    per_type_count = per_type_count.melt(
-        var_name='type', value_name='count'
-    )
+    per_type_count = per_type_count.rename(columns={'index': 'type', 0: 'count'})
+
+    per_type_latency['type'] = per_type_latency['type'].apply(lambda x: x if 'total' not in x else 'total')
+    per_type_count['type'] = per_type_count['type'].apply(lambda x: x if 'total' not in x else 'total')
 
     per_type = per_type_latency
     per_type['count'] = per_type_count['count']
