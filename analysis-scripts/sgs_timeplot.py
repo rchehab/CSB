@@ -13,7 +13,7 @@ import seaborn as sns
 
 from utils import *
 
-x_adjust, y_adjust, pretty, map_tid2name, select_time, allowed_threads, min_limit_iter, max_limit_iter = get_cmdline_timeplot(sys.argv)
+x_adjust, pretty, map_tid2name, select_time, allowed_threads, min_limit_iter, max_limit_iter = get_cmdline_timeplot(sys.argv)
 
 filename_dir_s1 = "results-mysql-lseek_fcntl_17_0"
 
@@ -108,7 +108,6 @@ for one_file in filename:
 
     for select_value in values_to_select:
         print("\n")
-        tmp, thread_group_id, order_threads = get_order_thread(df, select_value)
 
         get_other_name = {}
         for tid, simple in tid2simple_map.items():
@@ -116,6 +115,8 @@ for one_file in filename:
                 get_other_name[simple] = f"{simple}"
             else:
                 get_other_name[simple] = f"{map_tid2name[tid]} {simple}"
+
+        tmp, thread_group_id, order_threads = get_order_thread(df, "mean", select_value, tid2simple_map, simple2name, get_other_name, pretty)
 
         def get_name(x):
             if x in get_other_name and x in simple2name and simple2name[x] in pretty:
@@ -220,7 +221,7 @@ for one_file in filename:
 
             plt.axhline(y=y_place, color='red', linewidth=10)
 
-            cur_labels, add_text = change_labels(splot.get_yticklabels(), pinned_x=splot.get_xticks()[0])
+            cur_labels, add_text = change_labels(splot.get_yticklabels(), x_adjust, 0, pinned_x=splot.get_xticks()[0])
             splot.set_yticklabels(cur_labels)
 
             for a in add_text:
